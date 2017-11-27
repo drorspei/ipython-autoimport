@@ -6,6 +6,7 @@ to `~/.ipython/profile_default/ipython_config.py`.
 
 import ast
 import builtins
+from builtins import super
 import importlib
 import os
 import sys
@@ -66,7 +67,10 @@ def _report(ipython, msg):
     """
     # Tell prompt_toolkit to pass ANSI escapes through (PTK#187); harmless on
     # pre-PTK versions.
-    sys.stdout._raw = True
+    try:
+        sys.stdout._raw = True
+    except AttributeError:
+        pass
     cs = PyColorize.Parser().color_table[ipython.colors].colors
     # Token.NUMBER: bright blue (cyan), looks reasonable.
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
