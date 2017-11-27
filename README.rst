@@ -1,4 +1,4 @@
-ipython-autoimport
+ipython-autoimport (for python2.7 as well)
 ==================
 
 |Python33| |Travis| |CodeCov|
