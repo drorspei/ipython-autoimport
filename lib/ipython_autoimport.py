@@ -14,6 +14,8 @@ import token
 from types import ModuleType
 
 from IPython.utils import PyColorize
+from IPython.core.magic import register_line_magic
+from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 
 import setuptools_scm
 try:
@@ -52,12 +54,15 @@ def _get_import_cache(ipython):
 
     for _, _, entry in (
             ipython.history_manager.get_tail(
-                ipython.history_load_length, raw=False)):
-        try:
-            parsed = ast.parse(entry)
-        except SyntaxError:
-            continue
-        Visitor().visit(parsed)
+                ipython.history_load_length, raw=True)):
+        if entry.startswith("%autoimport -clear "):
+            import_cache.pop(entry[len("%autoimport -clear "):], None)
+        elif not entry.startswith("%"):
+            try:
+                parsed = ast.parse(entry)
+            except SyntaxError:
+                continue
+            Visitor().visit(parsed)
 
     return import_cache
 
@@ -148,7 +153,9 @@ class AutoImporterMap(dict):
             if len(imports) != 1:
                 if len(imports) > 1:
                     _report(self._ipython,
-                            "multiple imports available for {!r}".format(name))
+                            "multiple imports available for {!r}.\n"
+                            "Use \"%autoimport -clear {}\""
+                            "to clear autoimport cache for this symbol.".format(name, name))
                 raise key_error
             import_source, = imports
             try:
@@ -184,7 +191,17 @@ def load_ipython_extension(ipython):
     # saving, and the history sqlite database can only be accessed from one
     # thread.  Thus, we need to first load the import cache using the correct
     # (latter) thread, instead of lazily.
-    _get_import_cache(ipython)
+    # _get_import_cache(ipython)
+
+    @register_line_magic
+    @magic_arguments()
+    @argument("-clear", type=str, help="Symbol to clear")
+    def autoimport(arg):
+        args = parse_argstring(autoimport, arg)
+        if ipython.user_ns._import_cache.pop(args.clear, None):
+            _report(ipython, "cleared symbol \"{}\" from autoimport cache.".format(args.clear))
+        else:
+            _report(ipython, "didn't find symbol \"{}\" in autoimport cache.".format(args.clear))
 
 
 def unload_ipython_extension(ipython):
