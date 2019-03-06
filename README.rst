@@ -50,9 +50,9 @@ Pick one among:
 .. code-block:: sh
 
    $ pip install ipython-autoimport  # from PyPI
-   $ pip install git+https://github.com/anntzer/ipython-autoimport  # from Github
+   $ pip install git+https://github.com/drorspei/ipython-autoimport  # from Github
 
-then append the output of ``python -mipython_autoimport``
+then append the output of ``python -m ipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
